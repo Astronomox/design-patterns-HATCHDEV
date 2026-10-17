@@ -1,31 +1,43 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class WindowsButton {
+    handler = null;
     render() {
-        console.log("Rendering a Windows-style button.");
+        console.log("[Windows] Drawing a native OS button");
     }
-    onClick(callback) {
-        console.log("Registering a Windows button click handler.");
+    onClick(handler) {
+        console.log("[Windows] Binding a native click event");
+        this.handler = handler;
     }
 }
 class HTMLButton {
+    handler = null;
     render() {
-        console.log("Rendering an HTML button.");
+        console.log("[Web] Rendering <button>OK</button>");
     }
-    onClick(callback) {
-        console.log("Registering an HTML button click handler.");
+    onClick(handler) {
+        console.log("[Web] Adding a browser 'click' listener");
+        this.handler = handler;
+    }
+}
+class MacButton {
+    handler = null;
+    render() {
+        console.log("[macOS] Drawing a blue default button");
+    }
+    onClick(handler) {
+        console.log("[macOS] Binding click + Return key (default button)");
+        this.handler = handler;
     }
 }
 class Dialog {
     render() {
         const okButton = this.createButton();
-        okButton.onClick(() => {
-            this.closeDialog();
-        });
+        okButton.onClick(() => this.close());
         okButton.render();
     }
-    closeDialog() {
-        console.log("Closing the dialog.");
+    close() {
+        console.log("Dialog closed");
     }
 }
 class WindowsDialog extends Dialog {
@@ -38,24 +50,39 @@ class WebDialog extends Dialog {
         return new HTMLButton();
     }
 }
+class MacDialog extends Dialog {
+    createButton() {
+        return new MacButton();
+    }
+    render() {
+        console.log("[macOS] Sliding the dialog down as a sheet");
+        super.render();
+    }
+}
 class Application {
     dialog;
-    initialize(os) {
-        if (os === "Windows") {
-            this.dialog = new WindowsDialog();
-        }
-        else {
-            this.dialog = new WebDialog();
+    constructor(config) {
+        this.dialog = Application.chooseDialog(config.platform);
+    }
+    static chooseDialog(platform) {
+        switch (platform) {
+            case "windows":
+                return new WindowsDialog();
+            case "web":
+                return new WebDialog();
+            case "mac":
+                return new MacDialog();
+            default: {
+                const unknown = platform;
+                throw new Error(`Unknown platform: ${String(unknown)}`);
+            }
         }
     }
-    main() {
+    run() {
         this.dialog.render();
     }
 }
-const windowsApp = new Application();
-windowsApp.initialize("Windows");
-windowsApp.main();
-const webApp = new Application();
-webApp.initialize("Web");
-webApp.main();
+new Application({ platform: "windows" }).run();
+new Application({ platform: "web" }).run();
+new Application({ platform: "mac" }).run();
 //# sourceMappingURL=dialog.js.map
